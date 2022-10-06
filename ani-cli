@@ -139,7 +139,7 @@ download () {
 	case $2 in
 		*m3u8*)
 			ffmpeg -loglevel error -stats -referer "$1" -i "$2" -c copy "$download_dir/$3.mp4" ;;
-		*)	
+		*)
 			axel -a -k -n 10 --header=Referer:"$1" "$2" -o "$download_dir/$3.mp4" ;;
 	esac
 }
@@ -191,15 +191,6 @@ search_history () {
 generate_link() {
 	case $1 in
 		1)
-			provider_name='Xstreamcdn'
-			progress "Fetching $provider_name links.."
-			fb_id=$(printf "%s" "$resp" | sed -n "s_.*fembed.*/v/__p")
-			refr="https://fembed-hd.com/v/$fb_id"
-			[ -z "$fb_id" ] && return 0
-			result_links="$(curl -A "$agent" -s -X POST "https://fembed-hd.com/api/source/$fb_id" -H "x-requested-with:XMLHttpRequest" |
-				sed -e 's/\\//g' -e 's/.*data"://' | tr "}" "\n" | sed -nE 's/.*file":"(.*)","label":"(.*)","type.*/\2>\1/p')"
-			;;
-		2)
 			provider_name='Animixplay'
 			progress "Fetching $provider_name Direct link.."
 			refr="$base_url"
@@ -207,6 +198,15 @@ generate_link() {
 			enc_id=$(printf "%s" "$id" | base64)
 			ani_id=$(printf "%sLTXs3GrU8we9O%s" "$id" "$enc_id" | base64)
 			result_links="$(curl -s "$base_url/api/live${ani_id}" -A "$agent" -I | sed -nE 's_location: (.*)_\1_p' | cut -d"#" -f2 | base64 -d)"
+			;;
+		2)
+			provider_name='Xstreamcdn'
+			progress "Fetching $provider_name links.."
+			fb_id=$(printf "%s" "$resp" | sed -n "s_.*fembed.*/v/__p")
+			refr="https://fembed-hd.com/v/$fb_id"
+			[ -z "$fb_id" ] && return 0
+			result_links="$(curl -A "$agent" -s -X POST "https://fembed-hd.com/api/source/$fb_id" -H "x-requested-with:XMLHttpRequest" |
+				sed -e 's/\\//g' -e 's/.*data"://' | tr "}" "\n" | sed -nE 's/.*file":"(.*)","label":"(.*)","type.*/\2>\1/p')"
 			;;
 		*)
 			provider_name='Gogoanime'
